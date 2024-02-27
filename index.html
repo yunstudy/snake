@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang='en'>
+<head>
+  <meta charset='UTF-8'>
+  <title>snake game</title>
+  <script src='js/food.js'></script>
+  <script src='js/snake.js'></script>
+  <script src='js/rule.js'></script>
+</head>
+<body>
+<canvas id='canvas' width='510x' height='510x'></canvas>
+
+</body>
+<script>
+  const foodSound = new Audio('music/food.mp3');
+  const gameOverSound = new Audio('music/gameover.mp3');
+  const moveSound = new Audio('music/move.mp3');
+  const musicSound = new Audio('music/music.mp3');
+  const canvas = document.querySelector('#canvas');
+  const btn = document.querySelector('#btn');
+  const ctx = canvas.getContext('2d');
+  let interval;
+  let flag;
+
+  //清除画布(填充画布也是清除画布,好比刷油漆)
+  function clearCanvas() {
+    ctx.fillStyle = 'black';
+    ctx.fillRect(0, 0, 510, 510);
+  }
+
+
+  //初始化设置
+  function initializeGame() {
+    flag = false;
+    clearCanvas();
+    foodInitialize();
+    snakeInitialize();
+    food.draw();
+    for (const snake of snakes) {
+      snake.draw();
+    }
+  }
+
+  //游戏初始化
+  window.onload = () => {
+    initializeGame();
+  };
+
+  //开始游戏
+  function startGame() {
+    musicSound.play();
+    interval = setInterval(loop, 200);
+  }
+
+  //游戏暂停
+  function pauseGame() {
+    musicSound.pause();
+    clearInterval(interval);
+  }
+
+  //游戏结束
+  function gameOver() {
+    alert('game over! 按任意键重新开始!');
+  }
+
+  //是否出界
+  function outOfBound(snake) {
+    return snake.positionX < 0 || snake.positionX > 480 || snake.positionY < 0 || snake.positionY > 480;
+  }
+
+  //是否咬到自己
+  function bitSelf(head, snakes) {
+    for (let snake of snakes) {
+      if (head.positionX === snake.positionX && head.positionY === snake.positionY && head.isHead !== snake.isHead) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  //键盘事件控制方向(事件里申请变换方向,循环里确认方向,避免连续按键异常)
+  document.addEventListener('keydown', function(e) {
+    switch (e.key) {
+      case 'ArrowUp' :
+        if (direct[1] !== 1) {
+          newDirectionRequest = [0, -1];
+        }
+        break;
+      case 'ArrowDown' :
+        if (direct[1] !== -1) {
+          newDirectionRequest = [0, 1];
+        }
+        break;
+      case 'ArrowLeft' :
+        if (direct[0] !== 1) {
+          newDirectionRequest = [-1, 0];
+        }
+        break;
+      case 'ArrowRight' :
+        if (direct[0] !== -1) {
+          newDirectionRequest = [1, 0];
+        }
+        break;
+      case ' ' :
+        if (!flag) {
+          startGame();
+          flag = true;
+        } else {
+          pauseGame();
+          flag = false;
+        }
+        break;
+    }
+  });
+
+  //判断蛇与食物是否碰撞的方法
+  function isCollide(food, snake) {
+    return food.positionX === snake.positionX && food.positionY === snake.positionY;
+  }
+
+  //判断食物是否落在蛇身上的方法
+  function foodOnSnake(food, snakes) {
+    for (const snake of snakes) {
+      if (isCollide(food, snake)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  function loop() {
+    moveSound.play();
+    if (newDirectionRequest) {
+      direct = newDirectionRequest;
+      newDirectionRequest = null; // 重置方向请求
+    }
+    clearCanvas();
+    for (const snake of snakes) {
+      snake.move();
+      if (outOfBound(snake) || bitSelf(snake, snakes)) {
+        gameOverSound.play();
+        musicSound.pause();
+        gameOver();
+        initializeGame();
+        clearInterval(interval);
+      }
+      if (snake.isHead && isCollide(food, snake)) {
+        foodSound.play();
+        foodInitialize();
+        snakes.push(new Snake(positionX, positionY, direct, false));
+      }
+    }
+    while (foodOnSnake(food, snakes)) {
+      foodInitialize();
+    }
+    food.draw();
+    for (const snake of snakes) {
+      snake.draw();
+    }
+  }
+
+</script>
+</html>

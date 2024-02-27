@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang='en'>
+<head>
+  <meta charset='UTF-8'>
+  <title>Title</title>
+</head>
+<body>
+<div id='div'>动起来</div>
+<script>
+  const element = document.getElementById('div');
+  let done = false;
+  let num = 0;
+
+  function step(timestamp) {
+    // 这里使用 Math.min() 确保元素在恰好位于 200px 时停止运动
+    const count = Math.min(Math.random() * 201, 200);
+    element.style.transform = `translateX(${count}px)`;
+    if (count === 200) done = true;
+
+
+    if (!done) {
+      console.log(num++);
+      window.requestAnimationFrame(step);
+    }
+
+  }
+
+  step();
+  // window.requestAnimationFrame(step);
+
+</script>
+
+</body>
+</html>
